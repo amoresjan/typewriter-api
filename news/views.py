@@ -5,6 +5,39 @@ from django.utils import timezone
 from datetime import datetime
 from .models import News
 from .serializers import NewsSerializer
+from .services import GeminiService
+from django.conf import settings
+from datetime import date
+
+class GenerateNewsView(APIView):
+    def post(self, request):
+        auth_header = request.headers.get('Authorization')
+        if auth_header != f'Bearer {settings.CRON_SECRET}':
+            return Response(
+                {"error": "Unauthorized"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        if News.objects.filter(date=date.today()).exists():
+            return Response({"message": "News already exists for today"})
+
+        service = GeminiService()
+        data = service.generate_news()
+
+        if data:
+            News.objects.create(
+                title=data['title'],
+                content=data['content'],
+                author=data['author'],
+                source=data['source'],
+                date=date.today()
+            )
+            return Response({"message": "News generated successfully", "data": data})
+        
+        return Response(
+            {"error": "Failed to generate news"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 class NewsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = News.objects.all()

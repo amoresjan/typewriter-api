@@ -64,3 +64,64 @@ class NewsByDateAPITest(TestCase):
     def test_get_news_invalid_date(self):
         response = self.client.get('/api/news/invalid-date/')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+from unittest.mock import patch
+
+class GenerateNewsViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.url = reverse('news-generate')
+        self.cron_secret = 'test_secret'
+
+    @patch('news.views.GeminiService')
+    def test_generate_news_success(self, MockGeminiService):
+        # Setup mock
+        mock_service = MockGeminiService.return_value
+        mock_service.generate_news.return_value = {
+            "title": "Generated News",
+            "content": "Content",
+            "author": "Author",
+            "source": "Source"
+        }
+        
+        # Override settings
+        with self.settings(CRON_SECRET=self.cron_secret):
+            # Note: HTTP_AUTHORIZATION header is passed as is to META, 
+            # but Django's test client might expect it differently or headers kwarg.
+            # Using extra headers in post.
+            response = self.client.post(
+                self.url, 
+                headers={'Authorization': f'Bearer {self.cron_secret}'}
+            )
+            
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(News.objects.count(), 1)
+        self.assertEqual(News.objects.first().title, "Generated News")
+
+    def test_generate_news_unauthorized(self):
+        with self.settings(CRON_SECRET='secret'):
+            response = self.client.post(
+                self.url, 
+                headers={'Authorization': 'Bearer wrong_secret'}
+            )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_generate_news_already_exists(self):
+        News.objects.create(
+            title="Existing News",
+            content="Content",
+            author="Author",
+            source="Source",
+            date=date.today()
+        )
+        
+        with self.settings(CRON_SECRET='secret'):
+            response = self.client.post(
+                self.url, 
+                headers={'Authorization': 'Bearer secret'}
+            )
+            
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], "News already exists for today")
+        # Should still be 1
+        self.assertEqual(News.objects.count(), 1)
