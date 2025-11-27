@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework import status
 from .models import News
@@ -31,5 +32,35 @@ class NewsAPITest(TestCase):
     def test_get_news_list(self):
         response = self.client.get('/api/news/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Note: The new view filters by today, so if the setup created news for today, it returns 1.
+        # If the setup created news for another day, it might return 0.
+        # But NewsAPITest.setUp uses date.today().
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['title'], "API News")
+
+class NewsByDateAPITest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.today = timezone.localdate()
+        self.yesterday = self.today - timezone.timedelta(days=1)
+        
+        News.objects.create(title="Today News", content="C", author="A", source="S", date=self.today)
+        News.objects.create(title="Yesterday News", content="C", author="A", source="S", date=self.yesterday)
+
+    def test_get_news_today(self):
+        response = self.client.get('/api/news/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Should only return today's news
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['title'], "Today News")
+
+    def test_get_news_by_date(self):
+        date_str = self.yesterday.strftime('%m-%d-%Y')
+        response = self.client.get(f'/api/news/{date_str}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['title'], "Yesterday News")
+
+    def test_get_news_invalid_date(self):
+        response = self.client.get('/api/news/invalid-date/')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
