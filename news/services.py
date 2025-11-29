@@ -19,7 +19,7 @@ class GeminiService:
         Avoid political, religious, or sensitive topics.
         The output must be a valid JSON object with the following keys:
         - title: The headline of the article.
-        - content: The body of the article (use \\n for newlines). Avoid using any characters that are hard to type on a keyboard like emdash (—). Make 400-450 words per article.
+        - content: The body of the article (use \\n for newlines). Avoid using any characters that are hard to type on a keyboard like emdash (—). Make 350-400 words per article.
         - author: A fictional author name.
         - source: A fictional news source name (e.g., "The Daily Glitch").
         
