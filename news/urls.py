@@ -6,8 +6,8 @@ router = DefaultRouter()
 router.register(r'news', NewsViewSet)
 
 urlpatterns = [
+    path('news/generate/', GenerateNewsView.as_view(), name='news-generate'),
     path('news/<str:date>/', NewsByDateView.as_view(), name='news-by-date'),
     path('news/', NewsByDateView.as_view(), name='news-today'),
-    path('generate/', GenerateNewsView.as_view(), name='news-generate'),
     path('', include(router.urls)),
 ]
