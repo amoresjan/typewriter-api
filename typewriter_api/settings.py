@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'news',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [

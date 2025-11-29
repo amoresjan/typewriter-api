@@ -10,7 +10,14 @@ from django.conf import settings
 from datetime import date
 
 class GenerateNewsView(APIView):
+    """
+    View to trigger the generation of a new satirical news article.
+    """
     def post(self, request):
+        """
+        Generates a new news article using Gemini AI.
+        Requires a valid Bearer token matching CRON_SECRET.
+        """
         auth_header = request.headers.get('Authorization')
         if auth_header != f'Bearer {settings.CRON_SECRET}':
             return Response(
@@ -40,11 +47,22 @@ class GenerateNewsView(APIView):
         )
 
 class NewsViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for viewing news articles.
+    Provides standard read-only actions.
+    """
     queryset = News.objects.all()
     serializer_class = NewsSerializer
 
 class NewsByDateView(APIView):
+    """
+    View to retrieve news articles by a specific date.
+    """
     def get(self, request, date=None):
+        """
+        Get news for a specific date or today if no date is provided.
+        Date format: MM-DD-YYYY
+        """
         if date:
             try:
                 # Format: MM-DD-YYYY

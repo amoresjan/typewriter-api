@@ -105,6 +105,13 @@ You can also run the application using Docker.
     - Set Schedule: `0 16 * * *` (Midnight PH / 16:00 UTC).
     - Set Command: `python manage.py generate_news`
 
+## API Documentation
+
+The API documentation is available via Swagger UI and ReDoc:
+
+- **Swagger UI**: `/swagger/`
+- **ReDoc**: `/redoc/`
+
 ## API Endpoints
 
 ### `GET /api/news/`

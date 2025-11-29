@@ -1,6 +1,9 @@
 from django.db import models
 
 class News(models.Model):
+    """
+    Model representing a generated satirical news article.
+    """
     title = models.CharField(max_length=255)
     content = models.TextField()
     author = models.CharField(max_length=100)
