@@ -25,7 +25,7 @@ class GenerateNewsView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        if News.objects.filter(date=date.today()).exists():
+        if News.objects.filter(date=timezone.localdate()).exists():
             return Response({"message": "News already exists for today"})
 
         service = GeminiService()
@@ -37,7 +37,7 @@ class GenerateNewsView(APIView):
                 content=data['content'],
                 author=data['author'],
                 source=data['source'],
-                date=date.today()
+                date=timezone.localdate()
             )
             return Response({"message": "News generated successfully", "data": data})
         

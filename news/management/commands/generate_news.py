@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from news.services import GeminiService
 from news.models import News
-from datetime import date
+from django.utils import timezone
 
 class Command(BaseCommand):
     help = 'Generates a new satirical news article using Gemini API'
@@ -17,7 +17,7 @@ class Command(BaseCommand):
                 content=data['content'],
                 author=data['author'],
                 source=data['source'],
-                date=date.today()
+                date=timezone.localdate()
             )
             self.stdout.write(self.style.SUCCESS(f"Successfully created news: {data['title']}"))
         else:
